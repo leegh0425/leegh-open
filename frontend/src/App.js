@@ -1,8 +1,7 @@
-import React from 'react';
-import LoginRegister from './components/LoginRegister';
+import AppRoutes from './routes';
 
 function App() {
-  return <LoginRegister />;
+  return <AppRoutes />;
 }
 
 export default App;
