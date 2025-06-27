@@ -48,7 +48,7 @@ const Login = () => {
         e.preventDefault();
         // 실제론 API 인증 후에 처리!
         if (id && password) {
-            localStorage.setItem("token", "dummy-token");
+            localStorage.setItem("token", "dummy-token");    
             navigate("/main/dashboard");
         } else {
             alert("아이디와 비밀번호를 입력하세요!");
@@ -58,7 +58,7 @@ const Login = () => {
     return (
         <div className="wrapper">
             <div className="container" style={{display: "flex", flexDirection: "row"}}>
-                <div className="sign-in-container" style={{width: "50%", background: "#f5f6fa", borderRadius: "10px 0 0 10px"}}>
+                <div className="sign-in-container" >
                     <form onSubmit={handleSubmit}>
                         <h1>oda_Login</h1>
                         <div className="social-links">
@@ -71,16 +71,7 @@ const Login = () => {
                         <button className="form_btn" type="submit">Login In</button>
                     </form>
                 </div>
-                <div className="overlay-right" style={{
-                    width: "50%",
-                    background: "#1a1762",
-                    color: "#fff",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderRadius: "0 10px 10px 0"
-                }}>
+                <div className="overlay-right" >
                     <img src={oda_logo} alt="오다 로고" style={{ width: 220, marginBottom: 32 }} />
                 </div>
             </div>

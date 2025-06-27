@@ -7,11 +7,11 @@ import { Box } from "@mui/material";
 
 function MainLayout() {
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f7f8fa' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f8f6f3' }}>
       <Sidebar />
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column'  }}>
         <Topbar />
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ flex: 1, p: 4, background: 'transparent' }}>
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="notice" element={<Notice />} />
