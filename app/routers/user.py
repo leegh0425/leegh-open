@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
-from app.schemas import UserCreate, UserRead
-from app.crud import create_user
-from app.crud import get_users, get_user_by_id
-from app.schemas import UserRead
-from app.schemas import UserUpdate
-from app.crud import update_user
-from app.crud import delete_user
+from app.schemas.user import UserCreate, UserRead
+from app.crud.user import create_user
+from app.crud.user import get_users, get_user_by_id
+from app.schemas.user import UserRead
+from app.schemas.user import UserUpdate
+from app.crud.user import update_user
+from app.crud.user import delete_user
 
 router = APIRouter()
 

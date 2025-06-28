@@ -1,15 +1,29 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app import models, schemas
-from app.models import User
-from app.schemas import UserCreate
-from app.schemas import UserUpdate
+from app.schemas import user
+from app.models.user import User
+from app.schemas.user import UserCreate
+from app.schemas.user import UserUpdate
 from datetime import datetime
+from app.utils.password import verify_password
+
+async def authenticate_user(db, name: str, password: str):
+    user = await get_user_by_name(db, name)
+    if not user:
+        return None
+    if not verify_password(password, user.pwd):
+        return None
+    return user
+
+
+async def get_user_by_name(db, name: str):
+    result = await db.execute(select(User).where(User.name == name))
+    return result.scalar_one_or_none()
 
 # 이름으로 유저 1명 찾기 (SELECT * FROM users WHERE name=...)
-async def get_user_by_name(db: AsyncSession, name: str):
-    result = await db.execute(select(models.User).where(models.User.name == name))
-    return result.scalar_one_or_none()
+# async def get_user_by_name(db: AsyncSession, name: str):
+#     result = await db.execute(select(models.User).where(models.User.name == name))
+#     return result.scalar_one_or_none()
 
 # 회원등록 함수
 async def create_user(db: AsyncSession, user: UserCreate):
