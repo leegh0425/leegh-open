@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import './Login.css';
 import oda_logo from '../images/oda_logo_white.png';
 import { FaInstagram, FaYoutube } from 'react-icons/fa';
@@ -47,6 +48,30 @@ const Login = () => {
     const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_API_URL;
 
+    
+    // 자동 로그아웃 타이머 등록 함수
+    function setAutoLogout(token) {
+        try {
+            const decoded = jwtDecode(token);
+            if (decoded.exp) {
+                const expTime = decoded.exp * 1000; // ms
+                const now = Date.now();
+                const timeout = expTime - now;
+                if (timeout > 0) {
+                    setTimeout(() => {
+                        localStorage.removeItem('access_token');
+                        alert('세션이 만료되어 자동 로그아웃 됩니다.');
+                        navigate('/login');
+                    }, timeout);
+                }
+            }
+        } catch (e) {
+            // 토큰 파싱 실패시 바로 로그아웃
+            localStorage.removeItem('access_token');
+            navigate('/login');
+        }
+    }
+
      useEffect(() => {
         if (localStorage.getItem('access_token')) {
             navigate("/main/dashboard");
@@ -79,6 +104,7 @@ const Login = () => {
                 const data = await response.json();
                 // 토큰 저장
                 localStorage.setItem("access_token", data.access_token);
+                setAutoLogout(data.access_token); // 이 줄이 반드시 있어야 경고가 안 뜸!
 
                 // 대시보드로 이동
                 navigate("/main/dashboard");
