@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './Login.css';
 import oda_logo from '../images/oda_logo_white.png';
@@ -39,12 +39,19 @@ function Nav(props) {
     );
 }
 
+
 const Login = () => {
     const [username, setUsername] = useState(""); // id -> username
     const [password, setPassword] = useState("");
     const [error, setError] = useState(""); // 에러 메시지
     const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_API_URL;
+
+     useEffect(() => {
+        if (localStorage.getItem('access_token')) {
+            navigate("/main/dashboard");
+        }
+    }, [navigate]);
 
     // 로그인 제출
     const handleSubmit = async (e) => {

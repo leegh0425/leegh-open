@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 function Topbar() {
   // 로그아웃 핸들러(필요시)
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
     window.location.href = "/login";
   };
 
