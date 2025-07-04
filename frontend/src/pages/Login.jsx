@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import './Login.css'; // CSS 파일명/경로에 맞게!
+import './Login.css';
 import oda_logo from '../images/oda_logo_white.png';
 import { FaInstagram, FaYoutube } from 'react-icons/fa';
 import { SiNaver } from "react-icons/si";
@@ -40,38 +40,85 @@ function Nav(props) {
 }
 
 const Login = () => {
-    const [id, setId] = useState("");
+    const [username, setUsername] = useState(""); // id -> username
     const [password, setPassword] = useState("");
+    const [error, setError] = useState(""); // 에러 메시지
     const navigate = useNavigate();
+    const API_URL = process.env.REACT_APP_API_URL;
 
-    const handleSubmit = (e) => {
+    // 로그인 제출
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // 실제론 API 인증 후에 처리!
-        if (id && password) {
-            localStorage.setItem("token", "dummy-token");    
-            navigate("/main/dashboard");
-        } else {
-            alert("아이디와 비밀번호를 입력하세요!");
+        setError(""); // 에러 초기화
+
+        if (!username || !password) {
+            setError("아이디와 비밀번호를 입력하세요!");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username,   // FastAPI의 필드명과 일치!
+                    password
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // 토큰 저장
+                localStorage.setItem("access_token", data.access_token);
+
+                // 대시보드로 이동
+                navigate("/main/dashboard");
+            } else {
+                const err = await response.json();
+                setError(err.detail || "로그인 실패! 아이디/비밀번호 확인");
+            }
+        } catch (err) {
+            setError("서버 연결에 실패했습니다!");
         }
     };
 
     return (
         <div className="wrapper">
             <div className="container" style={{display: "flex", flexDirection: "row"}}>
-                <div className="sign-in-container" >
+                <div className="sign-in-container">
                     <form onSubmit={handleSubmit}>
                         <h1>oda_Login</h1>
                         <div className="social-links">
                             <Nav topics={topics} />
                         </div>
                         <span>or use your account</span>
-                        <input type="id" placeholder="id" value={id} onChange={(e) => setId(e.target.value)}/>
-                        <input type="password" placeholder="Password" value={password}
-                               onChange={(e) => setPassword(e.target.value)}/>
-                        <button className="form_btn" type="submit">Login In</button>
+                        <input
+                            type="text"
+                            placeholder="id"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            autoComplete="username"
+                        />
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
+                        />
+                        <button className="form_btn" type="submit">
+                            Log In
+                        </button>
+                        {error && (
+                            <div style={{ color: "red", marginTop: 10, fontSize: 14 }}>
+                                {error}
+                            </div>
+                        )}
                     </form>
                 </div>
-                <div className="overlay-right" >
+                <div className="overlay-right">
                     <img src={oda_logo} alt="오다 로고" style={{ width: 220, marginBottom: 32 }} />
                 </div>
             </div>

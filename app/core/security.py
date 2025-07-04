@@ -1,11 +1,7 @@
-import os
 from datetime import datetime, timedelta
 from jose import jwt
-from dotenv import load_dotenv
 
-load_dotenv()  # .env 파일 로드
-
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = "Sunny90218^^*"  # 실제로는 환경변수로!
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
