@@ -22,3 +22,5 @@ Base = declarative_base()
 async def get_db():
     async with SessionLocal() as session:  # 세션 열고
         yield session                      # 함수가 끝나면 세션 자동종료
+
+async_session = SessionLocal       
