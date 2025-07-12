@@ -15,7 +15,7 @@ engine = create_async_engine(DATABASE_URL, echo=True)
 # 세션 객체 생성: DB 작업 시 실제로 DB에 연결해서 쿼리할 때 사용
 SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-# SQLAlchemy의 기본 Base 객체 (테이블 생성할 때 사용)
+# SQLAlchemy의 기본 Base 객체 (테이블 생성할 때 사용)np
 Base = declarative_base()
 
 # FastAPI Dependency용 비동기 DB 세션 생성 함수

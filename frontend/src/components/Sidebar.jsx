@@ -1,11 +1,12 @@
 import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Box, Typography } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'; 
 import { Link, useLocation } from 'react-router-dom';
+
 
 const menu = [
   { text: 'Dashboard', path: '/main/dashboard', icon: <DashboardIcon /> },
-  { text: '공지사항', path: '/main/notice', icon: <NotificationsIcon /> },
+  { text: '매출마감등록', path: '/main/SalesClosingRegister', icon: <ReceiptLongIcon /> },
 ];
 
 function Sidebar() {
