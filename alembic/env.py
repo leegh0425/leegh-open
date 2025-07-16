@@ -30,6 +30,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app.db import Base  # Base = declarative_base()
 from app.models.user import User
 from app.models.menu import Menu  # ← menu 테이블 모델
+from app.models.closing_report import ClosingReport
+from app.models.closing_menu_item import ClosingMenuItem
 
 target_metadata = Base.metadata  # Alembic이 테이블 구조를 자동 인식
 
