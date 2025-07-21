@@ -6,7 +6,7 @@ from app.crud.closing_report import create_closing_report  # ✅ 함수 직접 i
 
 router = APIRouter()
 
-@router.post("/closing-reports/")
+@router.post("/")
 async def register_closing_report(
     report: ClosingReportCreate,
     db: AsyncSession = Depends(get_db)

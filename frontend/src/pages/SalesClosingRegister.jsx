@@ -6,6 +6,7 @@ import {
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import axios from "axios";  // 파일 상단에 추가
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -94,16 +95,34 @@ export default function SalesClosingRegister() {
     .filter(Boolean);
 
   // 등록 처리
-  const handleSubmit = () => {
-    const data = {
-      date: date.format("YYYY-MM-DD"),
-      todaySales, lastWeekSales, guests, tables,
-      tableDetail, notes, waiting, productivity,
-      menus: selected,
-    };
-    alert(JSON.stringify(data, null, 2));
-    // 실제는 fetch(POST)로 전송 가능
+  const handleSubmit = async () => {
+  const payload = {
+    comp_cd: "ODA01",  // 회사코드는 현재 하드코딩
+    close_date: date.format("YYYY-MM-DD"),
+    today_sales: Number(todaySales.trim()),
+    last_week_sales: Number(lastWeekSales.trim()),
+    emp_cnt: Number(guests.trim()),
+    tb_cnt: Number(tables.trim()),
+    tb_detail: tableDetail,
+    rmrk: notes,
+    wait_note: waiting,
+    pd_amt: productivity,
+    items: selected.map(menu => ({
+      menu_id: menu.id,
+      menu_name: menu.name,
+      qty: menu.qty
+    }))
   };
+
+   try {
+    const res = await axios.post(`${API_URL}/closing-reports/`, payload);
+    alert("마감 등록 완료!");
+    console.log("등록 성공:", res.data);
+  } catch (err) {
+    console.error("등록 실패:", err.response?.data || err.message);
+    alert("마감 등록에 실패했습니다.");
+  }
+};
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
