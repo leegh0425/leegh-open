@@ -1,16 +1,20 @@
-// components/ui/card.jsx
-export function Card({ className = "", children }) {
-  return <div className={`rounded-lg border bg-white shadow-sm ${className}`}>{children}</div>;
+import * as React from "react";
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export function Card({ className = "", ...props }: CardProps) {
+  return (
+    <div className={"bg-white rounded-2xl shadow-xl " + className} {...props} />
+  );
 }
 
-export function CardHeader({ className = "", children }) {
-  return <div className={`border-b px-6 py-4 ${className}`}>{children}</div>;
+export function CardContent({ className = "", ...props }: CardProps) {
+  return <div className={"p-6 " + className} {...props} />;
 }
 
-export function CardTitle({ className = "", children }) {
-  return <h3 className={`text-lg font-semibold leading-none tracking-tight ${className}`}>{children}</h3>;
+export function CardHeader({ className = "", ...props }: CardProps) {
+  return <div className={"px-6 pt-6 pb-3 " + className} {...props} />;
 }
 
-export function CardContent({ className = "", children }) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
+export function CardTitle({ className = "", ...props }: CardProps) {
+  return <h2 className={"text-lg font-bold " + className} {...props} />;
 }

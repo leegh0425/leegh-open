@@ -1,4 +1,8 @@
-// components/ui/separator.jsx
-export function Separator({ className = "" }) {
-  return <hr className={`border-gray-300 my-4 ${className}`} />;
+import * as React from "react";
+export interface SeparatorProps extends React.HTMLAttributes<HTMLHRElement> {}
+
+export function Separator({ className = "", ...props }: SeparatorProps) {
+  return (
+    <hr className={"my-3 border-t border-gray-200 " + className} {...props} />
+  );
 }
