@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from uuid import UUID
+#from uuid import UUID
 
 # ✅ 메뉴 생성 요청용 스키마
 class MenuCreate(BaseModel):
@@ -12,7 +12,7 @@ class MenuCreate(BaseModel):
 
 # ✅ 메뉴 조회 응답용 스키마 (id 포함)
 class MenuRead(MenuCreate):
-    id: UUID
+    id: str
 
     class Config:
         orm_mode = True

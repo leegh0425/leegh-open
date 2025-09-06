@@ -7,7 +7,6 @@ import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
 import dayjs, { Dayjs } from "dayjs";
-import axios from "axios";
 
 // 메뉴/마감 데이터 타입
 type MenuItem = { id: string; name: string; category: string; [key: string]: any; };
@@ -48,85 +47,108 @@ export default function SalesClosingRegister() {
     "bg-blue-50 border-blue-200", "bg-purple-50 border-purple-200", "bg-pink-50 border-pink-200",
   ];
 
+  const formatCurrency = (value: number): string => {
+    if (isNaN(value) || value === null) return '';
+    return value.toLocaleString('ko-KR');
+  };
+
+  const parseCurrency = (value: string): number => {
+    const parsed = Number(value.replace(/[^0-9]/g, ''));
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   // 메뉴 데이터 fetch
   useEffect(() => {
-    axios.get(`${API_URL}/menus/`).then(res => {
-      const data: MenuItem[] = res.data;
-       console.log("[menus API data]", data);
-      const grouped = data.reduce((acc: MenuData, item) => {
-        if (!acc[item.category]) acc[item.category] = [];
-        acc[item.category].push(item); return acc;
-      }, {});
-      setMenuData(grouped);
+    fetch(`${API_URL}/menus/`)
+      .then(res => {
+        if (!res.ok) throw new Error('메뉴 데이터를 불러오는데 실패했습니다.');
+        return res.json();
+      })
+      .then(data => {
+        console.log("[menus API data]", data);
+        const grouped = data.reduce((acc: MenuData, item: MenuItem) => {
+          if (!acc[item.category]) acc[item.category] = [];
+          acc[item.category].push(item); return acc;
+        }, {});
+        setMenuData(grouped);
 
-      // 색상 매핑
-      const cats = Object.keys(grouped);
-      const colors: { [cat: string]: string } = {};
-      cats.forEach((cat, idx) => { colors[cat] = RAINBOW_COLORS[idx % RAINBOW_COLORS.length]; });
-      setCategoryColors(colors);
+        // 색상 매핑
+        const cats = Object.keys(grouped);
+        const colors: { [cat: string]: string } = {};
+        cats.forEach((cat, idx) => { colors[cat] = RAINBOW_COLORS[idx % RAINBOW_COLORS.length]; });
+        setCategoryColors(colors);
 
-      // 접힘 상태
-      const initialCollapsed: { [cat: string]: boolean } = {};
-      Object.keys(grouped).forEach(cat => { initialCollapsed[cat] = true; });
-      setCollapsed(initialCollapsed);
-    });
+        // 접힘 상태
+        const initialCollapsed: { [cat: string]: boolean } = {};
+        Object.keys(grouped).forEach(cat => { initialCollapsed[cat] = true; });
+        setCollapsed(initialCollapsed);
+      })
+      .catch(err => {
+        console.error(err);
+        alert(err.message);
+      });
   }, []);
 
   // 날짜 바뀌면 데이터 fetch (존재시 EDIT/마감, 없으면 NEW)
-useEffect(() => {
-  // 메뉴 데이터가 준비되기 전에는 아무 작업도 하지 않음!
-  if (!menuData || Object.keys(menuData).length === 0) return;
+  useEffect(() => {
+    // 메뉴 데이터가 준비되기 전에는 아무 작업도 하지 않음!
+    if (!menuData || Object.keys(menuData).length === 0) return;
 
-  // 1) 날짜 변경시 즉시 폼/수량 초기화 (잔상 방지)
-  setForm({
-    today_sales: 0,
-    last_week_sales: 0,
-    emp_cnt: 0,
-    tb_cnt: 0,
-    tb_detail: "",
-    rmrk: "",
-    wait_note: "",
-    pd_amt: ""
-  });
-  setMenuQty({});
-  setMode("NEW");
-  setLoading(true);
+    // 1) 날짜 변경시 즉시 폼/수량 초기화 (잔상 방지)
+    setForm({
+      today_sales: 0, last_week_sales: 0, emp_cnt: 0, tb_cnt: 0,
+      tb_detail: "", rmrk: "", wait_note: "", pd_amt: ""
+    });
+    setMenuQty({});
+    setMode("NEW");
+    setLoading(true);
 
-  // 2) 서버에서 마감 데이터 fetch
-  axios.get(`${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}`)
-    .then(res => {
-      const report = res.data;
-      setLastReport(report);  // 마지막 마감데이터 저장!
-      //const menuIds = Object.values(menuData).flat().map(m => m.id);
-      //const closingIds = (report.items || []).map((i: { menu_id: string; }) => i.menu_id);
+    // 2) 서버에서 마감 데이터 fetch
+    fetch(`${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}`)
+      .then(res => {
+        if (!res.ok) {
+          // 404 Not Found와 같은 HTTP 에러는 여기서 잡힙니다.
+          throw new Error('Network response was not ok');
+        }
+        return res.json();
+      })
+      .then(data => {
+        // 백엔드에서 { message: '...', data: null } 형태로 응답하는 경우를 처리합니다.
+        if (data.data === null || !data.close_date) {
+          throw new Error('No report found for this date');
+        }
 
-      setForm({
-        today_sales: report.today_sales,
-        last_week_sales: report.last_week_sales,
-        emp_cnt: report.emp_cnt,
-        tb_cnt: report.tb_cnt,
-        tb_detail: report.tb_detail,
-        rmrk: report.rmrk,
-        wait_note: report.wait_note,
-        pd_amt: report.pd_amt
-      });
-       
-      setMenuQty(
-        Object.fromEntries(
-          (report.menu_items || []).map((i: { menu_id: string; qty: number; }) => [i.menu_id, i.qty])
-        )
-      );
-       
-      setMode(report.is_closed ? "CLOSED" : "EDIT");
-    })
-    .catch(() => {
-      // 데이터 없을 때 완전 초기화
-      setMenuQty({});
-      setMode("NEW");
-      setLastReport(null);
-    })
-    .finally(() => setLoading(false));
-}, [date, menuData]);
+        // 데이터가 있으면 상태를 업데이트합니다.
+        const report = data;
+        setLastReport(report);
+
+        setForm({
+          today_sales: report.today_sales,
+          last_week_sales: report.last_week_sales,
+          emp_cnt: report.emp_cnt,
+          tb_cnt: report.tb_cnt,
+          tb_detail: report.tb_detail,
+          rmrk: report.rmrk,
+          wait_note: report.wait_note,
+          pd_amt: report.pd_amt
+        });
+         
+        setMenuQty(
+          Object.fromEntries(
+            (report.menu_items || []).map((i: { menu_id: string; qty: number; }) => [i.menu_id, i.qty])
+          )
+        );
+         
+        setMode(report.is_closed ? "CLOSED" : "EDIT");
+      })
+      .catch(() => {
+        // 데이터가 없거나 fetch에 실패하면 '신규 등록' 상태로 초기화합니다.
+        setMenuQty({});
+        setMode("NEW");
+        setLastReport(null);
+      })
+      .finally(() => setLoading(false));
+  }, [date, menuData]);
 
     // 선택 요약 (수량 > 0)
   const selected = Object.entries(menuQty)
@@ -188,16 +210,27 @@ useEffect(() => {
     };
     setLoading(true);
     try {
-      if (mode === "NEW") {
-        await axios.post(`${API_URL}/closing-reports/`, payload);
-        alert("등록 완료!");
-      } else {
-        await axios.put(`${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}`, payload);
-        alert("수정 완료!");
+      const url = mode === 'NEW'
+        ? `${API_URL}/closing-reports/`
+        : `${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}`;
+
+      const method = mode === 'NEW' ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "알 수 없는 오류가 발생했습니다." }));
+        throw new Error(errorData.detail || `HTTP 오류! 상태: ${response.status}`);
       }
+
+      alert(mode === "NEW" ? "등록 완료!" : "수정 완료!");
       setMode("EDIT");
     } catch (err: any) {
-      alert("저장 실패: " + (err.response?.data?.detail || err.message));
+      alert("저장 실패: " + err.message);
     }
     setLoading(false);
   };
@@ -206,11 +239,21 @@ useEffect(() => {
   const handleClose = async (closed: boolean) => {
     setLoading(true);
     try {
-      await axios.patch(`${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}/close`, { is_closed: closed });
+      const response = await fetch(`${API_URL}/closing-reports/${date.format("YYYY-MM-DD")}/close`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_closed: closed }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "알 수 없는 오류가 발생했습니다." }));
+        throw new Error(errorData.detail || `HTTP 오류! 상태: ${response.status}`);
+      }
+
       setMode(closed ? "CLOSED" : "EDIT");
       alert(closed ? "마감 처리 완료!" : "마감 취소 완료!");
     } catch (err: any) {
-      alert("마감 처리 실패: " + (err.response?.data?.detail || err.message));
+      alert("마감 처리 실패: " + err.message);
     }
     setLoading(false);
   };
@@ -261,14 +304,20 @@ useEffect(() => {
                 <Label className="font-bold text-base mb-2 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-green-500" /> 금일매출
                 </Label>
-                <Input type="number" value={form.today_sales} onChange={e => setField("today_sales", Number(e.target.value))}
+                <Input 
+                  type="text" 
+                  value={formatCurrency(form.today_sales)}
+                  onChange={e => setField("today_sales", parseCurrency(e.target.value))}
                   className="w-full h-12 rounded-lg border-gray-200 px-4 text-base" disabled={disableAll} />
               </div>
               <div>
                 <Label className="font-bold text-base mb-2 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-blue-500" /> 전주매출
                 </Label>
-                <Input type="number" value={form.last_week_sales} onChange={e => setField("last_week_sales", Number(e.target.value))}
+                <Input 
+                  type="text" 
+                  value={formatCurrency(form.last_week_sales)}
+                  onChange={e => setField("last_week_sales", parseCurrency(e.target.value))}
                   className="w-full h-12 rounded-lg border-gray-200 px-4 text-base" disabled={disableAll} />
               </div>
               <div>

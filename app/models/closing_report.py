@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Integer, Date, Text, TIMESTAMP
+from sqlalchemy import Boolean, Column, String, Integer, Date, Text, TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db import Base
@@ -18,6 +18,7 @@ class ClosingReport(Base):
     rmrk = Column(Text)
     wait_note = Column(Text)
     pd_amt = Column(String)
+    is_closed = Column(Boolean, default=False)  # ⭐️ 마감 여부(미마감 False/마감 True)
     crdt = Column(TIMESTAMP)
 
     menu_items = relationship("ClosingMenuItem", back_populates="report", cascade="all, delete-orphan")
